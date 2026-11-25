@@ -25,6 +25,8 @@ const FLAGS = [
   { key: "weight", label: "Weight recorded", short: "Kg" },
 ] as const;
 type FlagKey = (typeof FLAGS)[number]["key"];
+/** Heatmap steps (% of --heat mixed into the surface), light → dark. */
+const HEAT = [18, 36, 58];
 
 export function CalendarView() {
   const router = useRouter();
@@ -99,7 +101,7 @@ export function CalendarView() {
                 const any = f.calories || f.activity || f.weight || f.workout;
                 const inMonth = d.slice(0, 7) === month.slice(0, 7);
                 const level = count === 0 ? 0 : count <= 2 ? 1 : count <= 4 ? 2 : 3;
-                const bg = ["transparent", "color-mix(in oklab, var(--accent) 14%, var(--surface))", "color-mix(in oklab, var(--accent) 30%, var(--surface))", "color-mix(in oklab, var(--accent) 52%, var(--surface))"][level];
+                const bg = ["transparent", ...HEAT.map((p) => `color-mix(in oklab, var(--heat) ${p}%, var(--surface))`)][level];
                 return (
                   <button
                     key={d}
@@ -134,7 +136,7 @@ export function CalendarView() {
               </span>
               {[1, 2, 3].map((l) => (
                 <span key={l} className="flex items-center gap-1.5">
-                  <span className="size-3 rounded" style={{ background: `color-mix(in oklab, var(--accent) ${[14, 30, 52][l - 1]}%, var(--surface))` }} />
+                  <span className="size-3 rounded" style={{ background: `color-mix(in oklab, var(--heat) ${HEAT[l - 1]}%, var(--surface))` }} />
                   {["1–2 signals", "3–4 signals", "5+ signals"][l - 1]}
                 </span>
               ))}

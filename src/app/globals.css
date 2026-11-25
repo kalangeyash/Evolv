@@ -25,6 +25,8 @@
   --accent-ink: #172005;
   --accent-text: #4a6a00;
   --focus: #4a6a00;
+  /* Calendar heatmap hue: lime is too pale on white, so light mode uses a deeper green. */
+  --heat: #6b9a12;
 
   /* nutrition */
   --c-calories: #3a3d37;
@@ -68,6 +70,7 @@
   --accent-ink: #141a05;
   --accent-text: #c5f05a;
   --focus: #c5f05a;
+  --heat: #c5f05a;
 
   --c-calories: #e6e2d5;
   --c-protein: #4a7d12;

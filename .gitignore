@@ -43,3 +43,7 @@ next-env.d.ts
 # playwright
 /test-results/
 /playwright-report/
+
+# Real personal reports used by local-only tests (never committed)
+/src/test/fixtures/private/*
+!/src/test/fixtures/private/README.md

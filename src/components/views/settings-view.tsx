@@ -13,6 +13,8 @@ import { LoadingBlock } from "@/components/ui/feedback";
 import { Field, Input, parseInputNumber } from "@/components/ui/input";
 import { Segmented } from "@/components/ui/segmented";
 import { cn } from "@/lib/utils/cn";
+import { InstallGuide } from "@/components/install-guide";
+import { isIOS, isStandalone, notificationsSupported } from "@/lib/utils/platform";
 
 export function SettingsView() {
   const settings = useSettings();
@@ -112,6 +114,14 @@ export function SettingsView() {
                 Save
               </button>
             </form>
+            <p className="mt-3 text-[12.5px] text-muted">When a backup is due, a banner appears on the Overview and Data pages until you back up or snooze it. Reminders only appear when something changed since your last backup.</p>
+            <NotificationOptIn enabled={!!settings.backupNotifications} />
+          </CardBody>
+        </Card>
+        <Card>
+          <CardHeader title="Install on this device" />
+          <CardBody>
+            <InstallGuide />
           </CardBody>
         </Card>
         <Card>
@@ -137,5 +147,45 @@ export function SettingsView() {
         </Card>
       </div>
     </div>
+  );
+}
+
+/** Optional, permission-gated system notification for due backups. */
+function NotificationOptIn({ enabled }: { enabled: boolean }) {
+  const { run } = useAction();
+  const [perm, setPerm] = React.useState<NotificationPermission | "unsupported">("default");
+  const [iosBrowser, setIosBrowser] = React.useState(false);
+  React.useEffect(() => {
+    setPerm(notificationsSupported() ? Notification.permission : "unsupported");
+    setIosBrowser(isIOS() && !isStandalone());
+  }, []);
+  if (perm === "unsupported") {
+    return (
+      <p className="mt-3 text-[12.5px] text-faint">
+        {iosBrowser ? "System notifications on iPhone and iPad need EVOLV added to the Home Screen (iOS 16.4 or later). The in-app banner still works." : "This browser does not support notifications. The in-app banner still works."}
+      </p>
+    );
+  }
+  return (
+    <label className="mt-3 flex items-start gap-2.5 text-[13px]">
+      <input
+        type="checkbox"
+        className="mt-0.5 size-4 accent-[var(--accent)]"
+        checked={enabled && perm === "granted"}
+        disabled={perm === "denied"}
+        onChange={async (e) => {
+          if (!e.target.checked) return void run(() => updateSettings({ backupNotifications: false }), "Backup notifications off");
+          const p = perm === "granted" ? "granted" : await Notification.requestPermission();
+          setPerm(p);
+          if (p === "granted") await run(() => updateSettings({ backupNotifications: true }), "Backup notifications on");
+        }}
+      />
+      <span>
+        Also show a system notification when a backup is due
+        <span className="block text-[12px] text-faint">
+          {perm === "denied" ? "Notifications are blocked for this site in your browser settings." : "Optional. Shown at most once a day, and only while EVOLV is open; EVOLV has no server that could notify you otherwise."}
+        </span>
+      </span>
+    </label>
   );
 }

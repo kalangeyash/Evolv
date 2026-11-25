@@ -2,10 +2,14 @@
 
 EVOLV is a static site. The workflow `.github/workflows/deploy.yml` builds and deploys it on every push to `main`.
 
-## One-time setup
+## Status
 
-1. Push the repository to GitHub (this repo: `kalangeyash/Evolv`).
-2. On GitHub, open **Settings → Pages** and set **Source** to **GitHub Actions**.
+**Live** at https://kalangeyash.github.io/Evolv/ (deployed from `main`). The repository is public because GitHub's free plan only serves Pages from public repositories; only code is published, never user data. Development happens on the `development` branch; merging into `main` deploys.
+
+## One-time setup (already done for this repo)
+
+1. Push the repository to GitHub.
+2. On GitHub, open **Settings → Pages** and set **Source** to **GitHub Actions** (on the free plan the repository must be public).
 3. Push to `main` (or run the workflow manually from the Actions tab).
 
 The site is published at `https://<user>.github.io/<repo>/`. For this repo: **https://kalangeyash.github.io/Evolv/**

@@ -87,7 +87,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          "no-print fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-line bg-surface transition-[width] duration-200 lg:flex",
+          "no-print fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-line bg-surface pt-[env(safe-area-inset-top)] transition-[width] duration-200 lg:flex",
           collapsed ? "w-[68px]" : "w-[244px]",
         )}
         aria-label="Main navigation"
@@ -129,7 +129,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className={cn("transition-[padding] duration-200", collapsed ? "lg:pl-[68px]" : "lg:pl-[244px]")}>
         {/* Header */}
-        <header className="no-print sticky top-0 z-30 border-b border-line bg-[color-mix(in_oklab,var(--bg)_88%,transparent)] backdrop-blur-md">
+        <header
+          className="no-print sticky top-0 z-30 border-b border-line bg-[color-mix(in_oklab,var(--bg)_88%,transparent)] backdrop-blur-md"
+          style={{ paddingTop: "env(safe-area-inset-top)" }}
+        >
           <div className="mx-auto flex h-14 max-w-[1280px] items-center justify-between gap-3 px-4 sm:px-6 lg:h-16 lg:px-8">
             <Link href="/" className="lg:hidden" aria-label="EVOLV overview">
               <EvolvWordmark />
@@ -139,7 +142,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main id="main" className="mx-auto max-w-[1280px] px-4 pb-28 pt-6 sm:px-6 lg:px-8 lg:pb-12 lg:pt-8">
+        <main
+          id="main"
+          className="mx-auto max-w-[1280px] pb-28 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pt-6 sm:pl-[max(1.5rem,env(safe-area-inset-left))] sm:pr-[max(1.5rem,env(safe-area-inset-right))] lg:px-8 lg:pb-12 lg:pt-8"
+        >
           {children}
         </main>
       </div>

@@ -195,7 +195,7 @@ export type SectionKind =
 
 const SECTION_PATTERNS: [RegExp, SectionKind][] = [
   [/\b(uncertaint\w*|assumptions?|caveats?|limitations?|disclaimers?|confidence)\b/i, "uncertainty"],
-  [/\b(energy balance|calorie balance|caloric balance|net calories|deficit|surplus|tdee|expenditure)\b/i, "energy"],
+  [/\b(energy balance|calorie balance|caloric balance|net balance|net calories|deficit|surplus|tdee|expenditure)\b/i, "energy"],
   [/\b(apple watch|activity|fitness rings?|rings|movement|steps summary)\b/i, "activity"],
   [/\b(workouts?|training log|exercise sessions?|training)\b/i, "workouts"],
   [/\b(daily totals?|totals?|nutrition summary|macro summary|daily summary|day summary|macros? (?:vs|versus) targets?|summary|target progress)\b/i, "totals"],

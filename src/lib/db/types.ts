@@ -342,4 +342,10 @@ export interface AppSettings extends Timestamps {
   backupReminderDays: number;
   /** Calorie "within target" band, as a percentage either side of target. */
   calorieTolerancePct: number;
+  /** Backup reminder snoozed until this instant (added in 1.0.1; absent on older records). */
+  backupSnoozedUntil?: ISOTimestamp | null;
+  /** User opted in to a system notification when a backup is due (added in 1.0.1). */
+  backupNotifications?: boolean;
+  /** Last time a backup notification was shown, to limit it to once a day. */
+  lastBackupNotifiedAt?: ISOTimestamp | null;
 }

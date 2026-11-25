@@ -1,82 +1,73 @@
 # EVOLV — project status
 
-_Last updated: 2026-11-25 (v1.0.0)_
+_Last updated: 2026-11-25 (v1.0.1, `development` branch)_
 
-"Complete" below means implemented **and** exercised by automated tests or a manual check in the production build, as stated. Interface-only work is not counted as complete.
+"Complete" means implemented **and** verified by the test or check named next to it. Interface-only work is never counted as complete.
 
-## Phase summary
+## v1.0.1 validation tasks
 
-| Phase | Status | Verified by |
+| Task | Status | What was done and verified |
 |---|---|---|
-| 1. Foundation (Next.js static export, design system, navigation, profile, IndexedDB, migrations) | Done | Unit tests (seed, repos), e2e (all 14 routes render and refresh) |
-| 2. Import engine (parser, preview, validation, duplicates, transactional save) | Done | 36 parser tests, 12 persistence tests, e2e import + duplicate merge |
-| 3. Food journal (timeline, editing with provenance, manual entry, search, frequent foods, meal analytics) | Done | Persistence tests (corrections, deletes), e2e manual entry |
-| 4. Dashboard (daily summary, nutrition cards, intake line, rings, weight, meals, observations, customisation) | Done | Analytics tests, e2e, screenshot review (desktop + mobile) |
-| 5. Body analytics (weight, moving average, weekly/monthly, measurements, BMI) | Done | Analytics tests, e2e weight logging |
-| 6. Activity and workouts (Apple Watch data, charts, sessions, library, PRs, 1RM) | Done | Analytics tests; workout save covered by backup tests |
-| 7. Advanced analytics (nutrition intelligence, reports, calendar, goals, insights, energy balance) | Done | Analytics + insight tests, screenshot review |
-| 8. Data and deployment (backup, restore, CSV, PWA, offline, GitHub Pages workflow) | Done | Backup tests incl. corrupted and failed restores; e2e offline; production build under `/Evolv` |
-| 9. Final audit | Done for this release; see open items | Full test run below |
+| 1. Real Gemini report validation | **Blocked on source text** | The full text of the 25 Nov 2026 report has still not been supplied, only its summary figures. Inventing six entries to match those totals would fabricate data, so it was not done. Instead, `real-report.test.ts` checks the real report against every supplied figure (date, 6 entries, 1,757 kcal / 80.5 P / 224.6 C / 57.5 F / 16.5 fiber, move 730/500, exercise 80/60, stand 12/12, 10,509 steps, 8.32 km, Outdoor Walk 1.24 km, energy-balance text, persistence, duplicates). It runs as soon as the text is saved to `src/test/fixtures/private/report-2026-11-25.md` (git-ignored, so personal data stays out of the public repo). Real-world fixes from reports you tested were made and are covered by tests: inline scores, steps in many layouts, and `Est. Net Balance` lines. |
+| 2. Safari and iOS | **Partially verified** | Verified in WebKit (Playwright desktop Safari and iPhone 14 profiles): all pages render and survive refresh, import, persistence, duplicates, manual entry, weight logging, offline navigation through the service worker (desktop WebKit), and no mobile overflow. Added: safe-area padding for installed iOS apps, install guidance, and a Safari 7-day storage-eviction warning. **Not verified on a real iPhone/iPad:** Home Screen install, standalone mode, iOS storage eviction, notch safe areas, notification permission. |
+| 3. Light theme audit | Done | All 14 pages screenshotted in light mode on desktop and mobile and reviewed. Fixed: calendar heatmap levels were nearly invisible on white. Text, cards, charts, progress bars, dialogs, tables, navigation and toasts read correctly. |
+| 4. Chart accessibility | Done | Every chart has a Chart/Table toggle with a captioned table, an accessible name, and an empty-state message. The weight sparkline has a text label; the meal chart sits next to an equivalent table. Values never depend on colour or hover alone. Verified by e2e (table view on Overview). |
+| 5. Backup reminders | Done | Persistent banner on Overview and Data while a backup is due; only when records changed since the last backup; re-checks when the app returns to the foreground; "Remind me tomorrow" snooze; "Back up now" exports directly. Optional system notification, opt-in and permission-gated, at most once a day, and only while EVOLV is open (stated in the UI; unsupported browsers are told so). Logic unit-tested (5 tests). Notifications were not tested on a real device. |
+| 6. Regression audit | Done | See test status below. Two regressions caught and fixed before release: chart wrapper widening the populated Overview on mobile, and weigh-in pluralisation. |
+| 7. Documentation | Done | This file, CHANGELOG, TESTING, IMPORT_FORMAT, DEPLOYMENT updated. |
 
 ## Test status (last run 2026-11-25)
 
-- Unit/integration: **87 passed**
-- End-to-end on the production export (desktop Chrome + Pixel 7): **10 passed, 2 skipped by design**
+- Unit/integration (Vitest): **96 passed, 9 skipped** (the real-report suite, pending the private fixture)
+- End-to-end on the production export: **28 passed, 4 skipped by design** across desktop Chrome, Pixel 7, desktop Safari (WebKit), iPhone 14 (WebKit)
 - Typecheck and lint: **clean**
+- Production build with `BASE_PATH=/Evolv`: **succeeds**; service worker precaches 144 URLs
 
-## Acceptance criteria
+## Phase summary (v1.0.0)
 
-| # | Criterion | Status |
+| Phase | Status | Verified by |
 |---|---|---|
-| 1 | Enter and edit profile | Done |
-| 2 | Paste Gemini report | Done |
-| 3 | Parser extracts food and activity | Done (3 layouts + edge cases tested) |
-| 4 | Preview and correct before import | Done |
-| 5 | Duplicate detection | Done (identical text, same content, same date) |
-| 6 | Data persists after refresh | Done (e2e) |
-| 7 | Dashboard uses real values | Done |
-| 8 | Journal shows imported records | Done (e2e) |
-| 9 | Weight history | Done |
-| 10 | Body measurements | Done |
-| 11 | Workout logging | Done |
-| 12 | Activity tracking | Done |
-| 13 | Weekly and monthly analytics | Done |
-| 14 | Historical access | Done (calendar, date switcher, search) |
-| 15 | Backup and restore | Done (atomic, validated) |
-| 16 | Offline after install | Done (Chromium e2e) |
-| 17 | Free hosting | Done (GitHub Pages workflow) |
-| 18 | No fake statistics or dead controls | Done to the best of the audit; every figure derives from stored records |
-| 19 | Polished mobile and desktop | Done for dark theme; light theme not screenshot-reviewed |
-| 20 | Critical logic has tests | Done |
+| 1. Foundation | Done | Unit tests, e2e (all 14 routes render and refresh) |
+| 2. Import engine | Done | Parser tests (layouts, edge cases, steps, energy lines, inline fields), persistence tests, e2e |
+| 3. Food journal | Done | Persistence tests, e2e manual entry |
+| 4. Dashboard | Done | Analytics tests, e2e, screenshots (dark + light, desktop + mobile) |
+| 5. Body analytics | Done | Analytics tests, e2e weight logging |
+| 6. Activity and workouts | Done | Analytics tests, backup tests |
+| 7. Advanced analytics | Done | Analytics and insight tests, screenshots |
+| 8. Data and deployment | Done | Backup tests incl. corrupted/failed restores, e2e offline, live deployment |
+| 9. Final audit | Done | Full regression above |
 
 ## Technical decisions
 
-- Next.js `output: "export"`, `trailingSlash: true`, `BASE_PATH` env for the GitHub Pages subpath. `cacheComponents` and PPR off.
-- Derived analytics over stored aggregates. The only stored aggregate is the optional "use reported totals" override.
-- Goal versions with effective dates preserve historical targets.
-- `null` means missing everywhere; averages count logged days only.
-- pnpm instead of npm: npm 11.4 crashed (`edgesOut`) resolving this dependency tree.
-- The React Compiler lint rule `set-state-in-effect` is disabled. Dialogs intentionally re-seed form state from live records when opened.
+- Static export (`output: "export"`, `trailingSlash: true`, `BASE_PATH`), no server.
+- Derived analytics; the only stored aggregate is the optional "use reported totals" override.
+- Versioned goals preserve historical targets; `null` means missing everywhere.
+- pnpm (npm 11.4 crashed resolving the tree).
+- `react-hooks/set-state-in-effect` lint rule off: dialogs re-seed forms from live records on open.
+- New settings fields in 1.0.1 (`backupSnoozedUntil`, `backupNotifications`, `lastBackupNotifiedAt`) are optional and unindexed, so **no schema migration** was needed; older records and backups remain valid.
+- Real reports used for testing live in a git-ignored folder so personal data is never published.
 
-## Pending / open items
+## Remaining limitations
 
-- **The real 25 November 2026 sample report was not in the specification.** The fixture `report-2026-11-25.md` is a representative stand-in matching the described shape (6 entries, 1,757 kcal, Apple Watch data). Add the real report as a fixture and test.
-- Safari/iOS PWA behaviour is untested (Playwright runs Chromium only).
-- The light theme has not been visually reviewed.
-- Charts have tooltips and legends, and several pages have tables, but not every chart has a "view as table" toggle.
+- **Real 25 Nov report text not yet provided** (Task 1 blocker; see above).
+- No real-device iOS testing. WebKit emulation only.
+- Safari (not installed) may delete local data after 7 days without use; EVOLV warns about this and recommends installing plus backups.
+- System notifications cannot fire while EVOLV is closed (no server, by design).
 - Overview widgets reorder with up/down buttons, not drag and drop.
-- Strength sets are entered manually; daily reports only provide workout summaries.
-- Backup reminders are in-app toasts only (no system notifications).
+- Strength sets are entered manually; reports provide workout summaries only.
 
 ## Known bugs
 
-None open at release. Fixed during the audit:
+None open. Fixed in 1.0.0 and 1.0.1:
 
-- Mobile focus-zoom pushed dialogs off-screen (input font now 16px on small screens).
+- Mobile focus-zoom pushed dialogs off-screen.
 - A card header's range selector widened the Body page on mobile.
-- An inline `— Score: 7/10` stayed inside food names instead of filling the score.
-- Steps written as `Steps — 8,432`, `8,432 steps`, `8.4k`, one-line summaries, or after the last meal without a heading were missed or absorbed into that meal.
+- A chart wrapper widened the populated Overview on mobile.
+- Inline `— Score: 7/10` stayed inside food names.
+- Steps in several common layouts were missed or absorbed into the last meal.
+- `Est. Net Balance` lines were left unrecognised.
+- Calendar heatmap levels were indistinguishable in light mode.
 
 ## Deployment status
 
-GitHub Actions workflow ready. Requires **Settings → Pages → Source: GitHub Actions** once on the repository. Target URL: https://kalangeyash.github.io/Evolv/
+**Live:** https://kalangeyash.github.io/Evolv/ serves `main` (v1.0.0 plus the steps fix). The repository was made public so the free plan can serve Pages. v1.0.1 is on the `development` branch and deploys when merged into `main`.

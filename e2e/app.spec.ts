@@ -6,8 +6,17 @@ const ROUTES = ["", "journal/", "import/", "nutrition/", "activity/", "workouts/
 
 function trackErrors(page: Page) {
   const errors: string[] = [];
-  page.on("pageerror", (e) => errors.push(e.message));
-  page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+  page.on("pageerror", (e) => {
+    if (/due to access control checks/.test(e.message)) return; // see note below
+    errors.push(e.message);
+  });
+  page.on("console", (m) => {
+    if (m.type() !== "error") return;
+    // WebKit reports link prefetches cancelled by navigation as "access control" errors.
+    // Every such URL was verified to serve 200; they are not application errors.
+    if (/due to access control checks/.test(m.text())) return;
+    errors.push(m.text());
+  });
   return errors;
 }
 
@@ -83,8 +92,8 @@ test("invalid reports are blocked with an explanation", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Import report" })).toBeDisabled();
 });
 
-test("works offline after the service worker has cached the app", async ({ page, context, browserName }, info) => {
-  test.skip(info.project.name !== "desktop" || browserName !== "chromium");
+test("works offline after the service worker has cached the app", async ({ page, context }, info) => {
+  test.skip(info.project.name !== "desktop" && info.project.name !== "webkit-desktop");
   await page.goto("");
   await page.evaluate(async () => {
     const reg = await navigator.serviceWorker.ready;
@@ -100,8 +109,9 @@ test("works offline after the service worker has cached the app", async ({ page,
   await context.setOffline(false);
 });
 
-test("no horizontal overflow on mobile", async ({ page }, info) => {
-  test.skip(info.project.name !== "mobile");
+test("no horizontal overflow on mobile, with and without data", async ({ page }, info) => {
+  test.skip(info.project.name !== "mobile" && info.project.name !== "iphone");
+  const check = async () => {
   for (const r of ROUTES) {
     await page.goto(r);
     await page.waitForTimeout(300);
@@ -109,4 +119,33 @@ test("no horizontal overflow on mobile", async ({ page }, info) => {
     const overflow = await page.evaluate(() => Math.max(document.documentElement.scrollWidth, window.innerWidth) - screen.width);
     expect(overflow, `overflow on /${r}`).toBeLessThanOrEqual(1);
   }
+  };
+  await check();
+  await importReport(page);
+  await page.getByRole("button", { name: "Import report" }).click();
+  await expect(page.getByText(/6 food entries added/)).toBeVisible();
+  await check();
+});
+
+test("charts offer an accessible table view", async ({ page }) => {
+  await importReport(page);
+  await page.getByRole("button", { name: "Import report" }).click();
+  await expect(page.getByText(/6 food entries added/)).toBeVisible();
+  await page.goto("");
+  const toggle = page.getByRole("radiogroup", { name: /Cumulative calories.*view as/ });
+  await toggle.getByRole("radio", { name: "Table" }).click();
+  const table = page.getByRole("table", { name: /Cumulative calories/ });
+  await expect(table.getByRole("row")).toHaveCount(7); // header + 6 meals
+  await expect(table).toContainText("1,757 kcal");
+});
+
+test("theme choice persists and Settings explains installation", async ({ page }) => {
+  await page.goto("settings/");
+  await page.getByRole("radio", { name: "Light" }).click();
+  await expect(page.locator("html")).not.toHaveClass(/dark/);
+  await page.reload();
+  await expect(page.locator("html")).not.toHaveClass(/dark/);
+  await expect(page.getByRole("heading", { name: "Install on this device" })).toBeVisible();
+  await page.getByRole("radio", { name: "Dark" }).click();
+  await expect(page.locator("html")).toHaveClass(/dark/);
 });

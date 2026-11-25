@@ -469,7 +469,7 @@ export function parseReportStructure(input: string): RawReport {
       }
     }
 
-    if (/energy balance|calorie balance|net calories|deficit|surplus|tdee|expenditure/.test(k)) {
+    if (/energy balance|calorie balance|caloric balance|net balance|net calories|balance|deficit|surplus|tdee|expenditure|maintenance|burn/.test(k)) {
       report.energy.push(wholeLine);
       return true;
     }

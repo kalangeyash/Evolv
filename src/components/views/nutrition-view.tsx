@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState, EstimateBadge, LoadingBlock } from "@/components/ui/feedback";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Stat } from "@/components/ui/stat";
+import { ChartOrTable } from "@/components/ui/chart-or-table";
 import { ChartFrame, ChartTooltip, Legend } from "@/components/ui/chart";
 import { DailyBars } from "@/components/charts/daily-bars";
 import { NUTRIENT_COLOR, NutrientProgressList } from "@/components/food/nutrient-progress";
@@ -336,6 +337,11 @@ function MacroTrend({ series }: { series: DayNutrition[] }) {
     <Card>
       <CardHeader title="Macro trends" description="Grams per logged day; gaps are unlogged days" />
       <CardBody>
+        <ChartOrTable
+          label="Macro grams per day"
+          hasData={series.some((d) => d.logged)}
+          table={{ columns: ["Date", "Protein (g)", "Carbs (g)", "Fat (g)", "Fiber (g)"], rows: data.map((d) => [formatDay(d.date, "EEE, d MMM"), d.protein, d.carbs, d.fat, d.fiber]) }}
+        >
         <ChartFrame height={240}>
           <ResponsiveContainer>
             <LineChart data={data} margin={{ top: 8, right: 8, left: -8 }}>
@@ -350,6 +356,7 @@ function MacroTrend({ series }: { series: DayNutrition[] }) {
           </ResponsiveContainer>
         </ChartFrame>
         <Legend className="mt-2" items={keys.map((k) => ({ label: NUTRIENT_LABELS[k], color: NUTRIENT_COLOR[k] }))} />
+        </ChartOrTable>
         <p className="mt-2 text-[12px] text-faint">
           Consistency: {series.filter((d) => d.logged).length} of {series.length} days logged
         </p>
