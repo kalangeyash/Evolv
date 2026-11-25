@@ -22,5 +22,8 @@ export default defineConfig({
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 960 } } },
     { name: "mobile", use: { ...devices["Pixel 7"] } },
+    // WebKit is Safari's engine; this approximates Safari and iOS but is not a real iOS device.
+    { name: "webkit-desktop", use: { ...devices["Desktop Safari"], viewport: { width: 1440, height: 960 } } },
+    { name: "iphone", use: { ...devices["iPhone 14"] } },
   ],
 });

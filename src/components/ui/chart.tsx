@@ -53,11 +53,11 @@ export function Legend({ items, className }: { items: { label: string; color: st
 }
 
 /** Wrapper that keeps a fixed chart height and avoids SSR layout issues. */
-export function ChartFrame({ height = 220, children, className }: { height?: number; children: React.ReactNode; className?: string }) {
+export function ChartFrame({ height = 220, children, className, label }: { height?: number; children: React.ReactNode; className?: string; label?: string }) {
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => setMounted(true), []);
   return (
-    <div className={cn("w-full", className)} style={{ height }}>
+    <div className={cn("w-full", className)} style={{ height }} role={label ? "img" : undefined} aria-label={label}>
       {mounted ? children : null}
     </div>
   );

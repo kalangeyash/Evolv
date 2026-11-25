@@ -9,10 +9,8 @@ import {
   TABLE_NAMES,
   activityCsv,
   clearAllData,
-  createBackup,
   downloadText,
   foodCsv,
-  markBackupTaken,
   measurementsCsv,
   restoreBackup,
   validateBackupText,
@@ -21,6 +19,7 @@ import {
   type BackupValidation,
 } from "@/lib/backup/backup";
 import { todayISO } from "@/lib/utils/dates";
+import { BackupBanner, exportBackupNow } from "@/components/backup-banner";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,12 +43,7 @@ const TABLE_LABEL: Record<string, string> = {
   applicationSettings: "Settings",
 };
 
-async function exportJson() {
-  const b = await createBackup();
-  downloadText(`evolv-backup-${todayISO()}.json`, JSON.stringify(b, null, 1));
-  await markBackupTaken(b.exportedAt);
-  return b;
-}
+const exportJson = exportBackupNow;
 
 export function DataView() {
   const settings = useSettings();
@@ -78,6 +72,7 @@ export function DataView() {
   return (
     <div>
       <PageHeader title="Data Management" description="Everything lives in this browser. Back up regularly; a backup file is the only copy outside this device." />
+      <BackupBanner />
 
       <Callout tone={last ? "info" : "warn"} title={last ? `Last backup: ${last.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}` : "No backup yet"} className="mb-4">
         Clearing your browser&apos;s site data, uninstalling the browser, or using private browsing can erase EVOLV&apos;s records. Keep a recent backup file somewhere safe.

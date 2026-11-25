@@ -1,6 +1,7 @@
 "use client";
 import { Bar, BarChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ChartFrame, ChartTooltip } from "@/components/ui/chart";
+import { ChartOrTable } from "@/components/ui/chart-or-table";
 import { formatDay } from "@/lib/utils/dates";
 import { fmt } from "@/lib/utils/format";
 
@@ -26,7 +27,21 @@ export function DailyBars({
   name: string;
 }) {
   const many = data.length > 14;
+  const withData = data.filter((d) => d.value !== null);
   return (
+    <ChartOrTable
+      label={`${name} per day`}
+      hasData={withData.length > 0}
+      emptyText={`No ${name.toLowerCase()} data in this range.`}
+      table={{
+        columns: ["Date", `${name} (${unit})`, ...(target ? ["Target"] : [])],
+        rows: data.map((d) => [
+          formatDay(d.date, "EEE, d MMM"),
+          d.value === null ? "Not logged" : `${fmt(d.value, { decimals })}${d.partial ? " (partial)" : ""}`,
+          ...(target ? [fmt(target)] : []),
+        ]),
+      }}
+    >
     <ChartFrame height={height}>
       <ResponsiveContainer>
         <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -8 }} barCategoryGap={many ? 2 : 6}>
@@ -60,5 +75,6 @@ export function DailyBars({
         </BarChart>
       </ResponsiveContainer>
     </ChartFrame>
+    </ChartOrTable>
   );
 }

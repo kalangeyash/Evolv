@@ -20,6 +20,7 @@ import { EmptyState, EstimateBadge, LoadingBlock, SourceBadge } from "@/componen
 import { Field, Input, Select } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Stat } from "@/components/ui/stat";
+import { ChartOrTable } from "@/components/ui/chart-or-table";
 import { ChartFrame, ChartTooltip, Legend } from "@/components/ui/chart";
 import { SessionDialog } from "@/components/workouts/session-dialog";
 
@@ -165,7 +166,10 @@ function Records({ data }: { data: Data }) {
           {rec.progression.length < 2 ? (
             <p className="text-[13px] text-muted">Log this exercise in at least two sessions to see progression.</p>
           ) : (
-            <>
+            <ChartOrTable
+              label={`${rec.name} progression`}
+              table={{ columns: ["Session", "Heaviest set (kg)", "Est. 1RM (kg)", "Volume (kg)"], rows: rec.progression.map((p) => [formatDay(p.date, "d MMM yyyy"), p.topWeight, p.bestE1RM, fmt(p.volume)]) }}
+            >
               <ChartFrame height={220}>
                 <ResponsiveContainer>
                   <LineChart data={rec.progression} margin={{ top: 8, right: 12, left: -8 }}>
@@ -179,7 +183,7 @@ function Records({ data }: { data: Data }) {
                 </ResponsiveContainer>
               </ChartFrame>
               <Legend className="mt-2" items={[{ label: "Heaviest set", color: "var(--c-strength)" }, { label: "Estimated 1RM", color: "var(--c-strength)", dashed: true }]} />
-            </>
+            </ChartOrTable>
           )}
         </CardBody>
       </Card>
@@ -217,6 +221,7 @@ function Analytics({ data }: { data: Data }) {
         <Card>
           <CardHeader title="Weekly frequency" description="Sessions per week, last 12 weeks" />
           <CardBody>
+            <ChartOrTable label="Workout sessions per week" table={{ columns: ["Week of", "Sessions", "Minutes"], rows: weekly.map((w) => [formatDay(w.week, "d MMM yyyy"), w.sessions, w.minutes]) }}>
             <ChartFrame height={200}>
               <ResponsiveContainer>
                 <BarChart data={weekly} margin={{ top: 8, right: 8, left: -16 }}>
@@ -228,11 +233,13 @@ function Analytics({ data }: { data: Data }) {
                 </BarChart>
               </ResponsiveContainer>
             </ChartFrame>
+            </ChartOrTable>
           </CardBody>
         </Card>
         <Card>
           <CardHeader title="Training volume" description="kg lifted per week (reps × load)" />
           <CardBody>
+            <ChartOrTable label="Training volume per week" table={{ columns: ["Week of", "Volume (kg)"], rows: weekly.map((w) => [formatDay(w.week, "d MMM yyyy"), fmt(w.volume)]) }}>
             <ChartFrame height={200}>
               <ResponsiveContainer>
                 <BarChart data={weekly} margin={{ top: 8, right: 8, left: 0 }}>
@@ -244,6 +251,7 @@ function Analytics({ data }: { data: Data }) {
                 </BarChart>
               </ResponsiveContainer>
             </ChartFrame>
+            </ChartOrTable>
           </CardBody>
         </Card>
         <Card>

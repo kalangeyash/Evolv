@@ -1,11 +1,12 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Toaster, toast } from "sonner";
+import { useBackupStatus } from "@/components/backup-banner";
+import { updateSettings } from "@/lib/db/repos";
+import { notificationsSupported } from "@/lib/utils/platform";
 import { getDb, requestPersistentStorage } from "@/lib/db/db";
 import { useSettings } from "@/hooks/use-data";
-import { daysBetween, todayISO, toISODate } from "@/lib/utils/dates";
 
 export const THEME_KEY = "evolv-theme";
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
@@ -32,25 +33,27 @@ function ThemeSync() {
   return null;
 }
 
-function BackupReminder() {
-  const settings = useSettings();
-  const router = useRouter();
-  const shown = React.useRef(false);
+/**
+ * Optional system notification when a backup is due. Opt-in from Settings,
+ * at most once every 20 hours, and only while EVOLV is open: without a
+ * server, a static web app cannot wake itself up to notify.
+ */
+function BackupNotifier() {
+  const s = useBackupStatus();
   React.useEffect(() => {
-    if (!settings || shown.current || settings.backupReminderDays <= 0) return;
-    const last = settings.lastBackupAt ? toISODate(new Date(settings.lastBackupAt)) : null;
-    const since = last ? daysBetween(last, todayISO()) : null;
-    const created = toISODate(new Date(settings.createdAt));
-    const age = daysBetween(created, todayISO());
-    if ((since === null && age >= settings.backupReminderDays) || (since !== null && since >= settings.backupReminderDays)) {
-      shown.current = true;
-      toast(since === null ? "You have not backed up EVOLV yet" : `Last backup was ${since} days ago`, {
-        description: "Your data lives only in this browser. Export a backup to keep it safe.",
-        action: { label: "Back up", onClick: () => router.push("/data/") },
-        duration: 12000,
-      });
-    }
-  }, [settings, router]);
+    if (!s?.status.due || !s.settings.backupNotifications) return;
+    if (!notificationsSupported() || Notification.permission !== "granted") return;
+    const last = s.settings.lastBackupNotifiedAt ? Date.parse(s.settings.lastBackupNotifiedAt) : 0;
+    if (Date.now() - last < 20 * 3600_000) return;
+    const body = s.status.daysSince === null ? "You have not backed up EVOLV yet." : `Your last backup was ${s.status.daysSince} days ago.`;
+    const show = async () => {
+      const reg = await navigator.serviceWorker?.getRegistration?.(`${BASE}/`);
+      if (reg) await reg.showNotification("EVOLV backup due", { body, icon: `${BASE}/icons/icon-192.png`, tag: "evolv-backup" });
+      else new Notification("EVOLV backup due", { body, icon: `${BASE}/icons/icon-192.png`, tag: "evolv-backup" });
+      await updateSettings({ lastBackupNotifiedAt: new Date().toISOString() });
+    };
+    void show().catch(() => undefined);
+  }, [s]);
   return null;
 }
 
@@ -118,7 +121,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <DatabaseGate>
       <ThemeSync />
-      <BackupReminder />
+      <BackupNotifier />
       <ServiceWorker />
       {children}
       <Toaster

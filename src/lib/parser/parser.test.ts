@@ -312,6 +312,21 @@ describe("Apple Watch steps and activity in many layouts", () => {
   });
 });
 
+describe("energy balance lines", () => {
+  it.each([
+    ["Est. Net Balance: ~50–100 kcal slight deficit (Maintenance)", -75],
+    ["Estimated Energy Balance: -320 kcal", -320],
+    ["Net Calories: ~200 kcal surplus", 200],
+    ["Calorie Balance: deficit of about 450 kcal", -450],
+  ])("reads “%s”", (line, kcal) => {
+    const r = parseReport(`Date: 26 Nov 2026\n### Lunch — 1 PM\nMeal: Rice\nCalories: 300 kcal\n\n${line}\n`, OPTS);
+    expect(r.unrecognized).toEqual([]);
+    expect(r.energyBalanceText).toContain(line.split(":")[0]);
+    expect(r.energyBalanceKcal).toBe(kcal);
+    expect(r.entries[0].description).toBeNull();
+  });
+});
+
 describe("text primitives", () => {
   it("parses numbers", () => {
     expect(parseNumber("1,757 kcal")).toMatchObject({ value: 1757, approximate: false });

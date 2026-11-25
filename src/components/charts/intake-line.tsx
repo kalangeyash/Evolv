@@ -3,6 +3,7 @@ import { Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YA
 import type { FoodEntry } from "@/lib/db/types";
 import { cumulativeIntake } from "@/lib/analytics/nutrition";
 import { ChartFrame, ChartTooltip, Legend } from "@/components/ui/chart";
+import { ChartOrTable } from "@/components/ui/chart-or-table";
 import { fmt } from "@/lib/utils/format";
 
 const hh = (m: number) => {
@@ -56,6 +57,14 @@ export function IntakeLine({
   for (let m = Math.ceil(start / 180) * 180; m <= end; m += 180) ticks.push(m);
 
   return (
+    <ChartOrTable
+      label="Cumulative calories and protein through the day, as a share of targets"
+      table={{
+        columns: ["Time", "Meal", "Calories so far", "% of target", "Protein so far", "% of target"],
+        numeric: [2, 3, 4, 5],
+        rows: pts.map((p) => [hh(p.minutes).replace(/(\d+)(am|pm)/, `$1:${String(p.minutes % 60).padStart(2, "0")} $2`), p.label, `${fmt(p.calories)} kcal${p.partial ? "+" : ""}`, `${Math.round((p.calories / calorieTarget) * 100)}%`, `${fmt(p.protein, { decimals: 1 })} g${p.partial ? "+" : ""}`, `${Math.round((p.protein / proteinTarget) * 100)}%`]),
+      }}
+    >
     <div>
       <ChartFrame height={200}>
         <ResponsiveContainer>
@@ -95,5 +104,6 @@ export function IntakeLine({
         ) : null}
       </div>
     </div>
+    </ChartOrTable>
   );
 }

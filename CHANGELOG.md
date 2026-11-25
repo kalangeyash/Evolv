@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.1 — 2026-11-25
+
+Validation and reliability release. No database migration; existing data is untouched.
+
+- **Import:** steps and Apple Watch metrics are read in more layouts (dash or no colon, value-first, `8.4k`, one-line summaries, lines after the last meal without a heading). Energy-balance lines such as `Est. Net Balance: ~50–100 kcal slight deficit` are recognised. Inline `— Score: 7/10` fragments fill the score field.
+- **Real-report harness:** `src/lib/parser/real-report.test.ts` checks the actual 25 Nov 2026 report against its source figures once the text is placed in the git-ignored `src/test/fixtures/private/`.
+- **Safari / iOS:** WebKit added to the e2e suite (desktop Safari and iPhone 14 profiles). Safe-area padding for installed iOS apps. Settings explains installation (Add to Home Screen on iOS, install button on Chromium) and warns that Safari deletes data after 7 days without use unless EVOLV is installed.
+- **Light theme:** every page reviewed on desktop and mobile; the calendar heatmap uses a deeper green in light mode so all levels are distinguishable.
+- **Charts:** every chart has a Chart/Table toggle, an accessible name, and an explicit empty state.
+- **Backup reminders:** a persistent banner (Overview and Data) replaces the one-off toast, appears only when records changed since the last backup, re-checks when the app returns to the foreground, and can be snoozed for a day. Optional system notification (permission-gated, at most daily, only while EVOLV is open).
+- **Fixes:** a chart could widen the populated Overview on mobile; "1 weigh-ins" wording.
+
 ## 1.0.0 — 2026-11-25
 
 First release of EVOLV.

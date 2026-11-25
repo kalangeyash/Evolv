@@ -39,6 +39,7 @@ import { ActivityDialog } from "@/components/activity/activity-dialog";
 import { WeightDialog } from "@/components/body/weight-dialog";
 import { cn } from "@/lib/utils/cn";
 import { Delta } from "@/components/ui/delta";
+import { BackupBanner } from "@/components/backup-banner";
 
 const WIDGET_LABEL: Record<DashboardWidgetId, string> = {
   intakeLine: "Intake through the day",
@@ -250,6 +251,7 @@ export function OverviewView() {
 
   return (
     <div>
+      <BackupBanner />
       {/* Hero: the day's headline numbers */}
       <section className="mb-6 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
@@ -358,7 +360,7 @@ function WeightSpark({ data }: { data: { date: string; weightKg: number; average
   const min = Math.min(...vals);
   const max = Math.max(...vals);
   return (
-    <ChartFrame height={56} className="max-w-[160px]">
+    <ChartFrame height={56} className="max-w-[160px]" label={`Weight trend: ${data[0].average.toFixed(1)} to ${data[data.length - 1].average.toFixed(1)} kg (7-day average)`}>
       <ResponsiveContainer>
         <LineChart data={data} margin={{ top: 4, right: 2, bottom: 4, left: 2 }}>
           <XAxis dataKey="date" hide />

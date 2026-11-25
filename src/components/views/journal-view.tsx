@@ -288,6 +288,7 @@ function MealAnalytics() {
           <Card>
             <CardHeader title="Energy by meal and macro" description="kcal per logged day, from grams × 4/4/9 (estimate)" />
             <CardBody>
+              <figure aria-label="Average energy per logged day by meal, split by protein, carbs and fat. The same values are in the meal summary table." className="m-0">
               <ChartFrame height={240}>
                 <ResponsiveContainer>
                   <BarChart data={data} layout="vertical" margin={{ left: 8, right: 16 }} barCategoryGap={10}>
@@ -302,6 +303,7 @@ function MealAnalytics() {
                 </ResponsiveContainer>
               </ChartFrame>
               <Legend className="mt-2" items={[{ label: "Protein", color: NUTRIENT_COLOR.protein }, { label: "Carbs", color: NUTRIENT_COLOR.carbs }, { label: "Fat", color: NUTRIENT_COLOR.fat }]} />
+              </figure>
             </CardBody>
           </Card>
           <Card>

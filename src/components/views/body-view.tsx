@@ -21,6 +21,7 @@ import { Field, Input, numToInput, parseInputNumber } from "@/components/ui/inpu
 import { Segmented } from "@/components/ui/segmented";
 import { Stat } from "@/components/ui/stat";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ChartOrTable } from "@/components/ui/chart-or-table";
 import { ChartFrame, ChartTooltip, Legend } from "@/components/ui/chart";
 import { WeightDialog } from "@/components/body/weight-dialog";
 import { Delta } from "@/components/ui/delta";
@@ -34,6 +35,7 @@ const RANGES = [
   { value: "all", label: "All time", days: 0 },
 ] as const;
 
+const weighIns = (n: number) => `${n} weigh-in${n === 1 ? "" : "s"}`;
 const unitOf = (k: MeasurementKey) => (k === "bodyFatPct" ? "%" : "cm");
 
 export function BodyView() {
@@ -135,9 +137,9 @@ function WeightTab({ weights, targetKg, onEdit }: { weights: WeightEntry[]; targ
           <Stat label="Starting" value={fmt(first.weightKg, { decimals: 1 })} unit="kg" sub={formatDay(first.date, "d MMM yyyy")} />
           <Stat label="Target" value={targetKg ? fmt(targetKg, { decimals: 1 }) : "—"} unit={targetKg ? "kg" : undefined} sub={targetKg ? `${fmt(latest.weightKg - targetKg, { decimals: 1 })} kg to go` : "Set in Goals"} />
           <Stat label="Total change" value={<Delta value={latest.weightKg - first.weightKg} unit="" />} unit="kg" />
-          <Stat label="7-day average" value={fmt(ma.at(-1)?.average ?? null, { decimals: 1 })} unit="kg" sub={`${ma.at(-1)?.samples ?? 0} weigh-ins`} />
-          <Stat label="This week avg" value={thisWeek ? fmt(thisWeek.average, { decimals: 1 }) : "—"} unit="kg" sub={thisWeek ? `${thisWeek.samples} weigh-ins` : undefined} />
-          <Stat label="This month avg" value={thisMonth ? fmt(thisMonth.average, { decimals: 1 }) : "—"} unit="kg" sub={thisMonth ? `${thisMonth.samples} weigh-ins` : undefined} />
+          <Stat label="7-day average" value={fmt(ma.at(-1)?.average ?? null, { decimals: 1 })} unit="kg" sub={weighIns(ma.at(-1)?.samples ?? 0)} />
+          <Stat label="This week avg" value={thisWeek ? fmt(thisWeek.average, { decimals: 1 }) : "—"} unit="kg" sub={thisWeek ? weighIns(thisWeek.samples) : undefined} />
+          <Stat label="This month avg" value={thisMonth ? fmt(thisMonth.average, { decimals: 1 }) : "—"} unit="kg" sub={thisMonth ? weighIns(thisMonth.samples) : undefined} />
           <Stat label="Trend" value={trend ? <Delta value={trend.kgPerWeek} unit="" /> : "—"} unit={trend ? "kg/wk" : undefined} sub={trend ? `Fitted over ${trend.samples} weigh-ins` : "Needs 4+ over 10+ days"} />
         </CardBody>
       </Card>
@@ -146,7 +148,10 @@ function WeightTab({ weights, targetKg, onEdit }: { weights: WeightEntry[]; targ
         <CardHeader title="Weight and 7-day average" action={<Segmented label="Range" value={range} onChange={setRange} options={RANGES.map((r) => ({ value: r.value, label: r.label }))} />} />
         <CardBody>
           {inRange.length ? (
-            <>
+            <ChartOrTable
+              label="Daily weigh-ins and 7-day moving average"
+              table={{ columns: ["Date", "Weigh-in (kg)", "7-day average (kg)", "Weigh-ins in window"], rows: [...inRange].reverse().map((p) => [formatDay(p.date, "EEE, d MMM yyyy"), p.weightKg.toFixed(1), p.average.toFixed(2), p.samples]) }}
+            >
               <ChartFrame height={280}>
                 <ResponsiveContainer>
                   <ComposedChart data={inRange} margin={{ top: 8, right: 12, left: -8 }}>
@@ -161,7 +166,7 @@ function WeightTab({ weights, targetKg, onEdit }: { weights: WeightEntry[]; targ
                 </ResponsiveContainer>
               </ChartFrame>
               <Legend className="mt-2" items={[{ label: "Daily weigh-in", color: "color-mix(in oklab, var(--c-body) 45%, transparent)" }, { label: "7-day moving average", color: "var(--c-body)" }, ...(targetKg ? [{ label: "Target", color: "var(--muted)", dashed: true }] : [])]} />
-            </>
+            </ChartOrTable>
           ) : (
             <p className="text-[13px] text-muted">No weigh-ins in this range.</p>
           )}
@@ -209,6 +214,7 @@ function PeriodBars({ data }: { data: { label: string; value: number; samples: n
   const min = Math.min(...data.map((d) => d.value));
   const max = Math.max(...data.map((d) => d.value));
   return (
+    <ChartOrTable label="Average weight per period" table={{ columns: ["Period", "Average (kg)", "Weigh-ins"], rows: data.map((d) => [d.label, d.value.toFixed(2), d.samples]) }}>
     <ChartFrame height={200}>
       <ResponsiveContainer>
         <BarChart data={data} margin={{ top: 8, right: 8, left: -8 }}>
@@ -220,6 +226,7 @@ function PeriodBars({ data }: { data: { label: string; value: number; samples: n
         </BarChart>
       </ResponsiveContainer>
     </ChartFrame>
+    </ChartOrTable>
   );
 }
 
@@ -258,6 +265,7 @@ function MeasurementsTab({ rows }: { rows: BodyMeasurement[] }) {
             <CardHeader title={`${MEASUREMENT_LABEL[key]} over time`} action={<Segmented label="Measurement" value={key} onChange={setKey} options={MEASUREMENT_KEYS.map((k) => ({ value: k, label: MEASUREMENT_LABEL[k] }))} />} />
             <CardBody>
               {series.length >= 2 ? (
+                <ChartOrTable label={`${MEASUREMENT_LABEL[key]} over time`} table={{ columns: ["Date", `${MEASUREMENT_LABEL[key]} (${unitOf(key)})`], rows: series.map((p) => [formatDay(p.date, "d MMM yyyy"), p.value]) }}>
                 <ChartFrame height={220}>
                   <ResponsiveContainer>
                     <ComposedChart data={series} margin={{ top: 8, right: 12, left: -8 }}>
@@ -269,6 +277,7 @@ function MeasurementsTab({ rows }: { rows: BodyMeasurement[] }) {
                     </ComposedChart>
                   </ResponsiveContainer>
                 </ChartFrame>
+                </ChartOrTable>
               ) : (
                 <p className="text-[13px] text-muted">Needs at least two {MEASUREMENT_LABEL[key].toLowerCase()} readings.</p>
               )}
