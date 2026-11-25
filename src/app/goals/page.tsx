@@ -1,0 +1,8 @@
+import type { Metadata } from "next";
+import { GoalsView } from "@/components/views/goals-view";
+
+export const metadata: Metadata = { title: "Goals & Targets" };
+
+export default function Page() {
+  return <GoalsView />;
+}

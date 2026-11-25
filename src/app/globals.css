@@ -1,0 +1,229 @@
+@import "tailwindcss";
+
+/* Class-based theming: <html class="dark"> is the default. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * EVOLV tokens
+ * Dark is the primary theme; light is a separately selected set of steps,
+ * not an inversion. Chart series colours were validated for contrast and
+ * colour-vision deficiency against each theme's surface.
+ */
+:root {
+  color-scheme: light;
+  --bg: #f3f4ef;
+  --surface: #ffffff;
+  --surface-2: #f6f7f2;
+  --surface-3: #eceee7;
+  --line: #dde0d6;
+  --line-strong: #c9cdc1;
+  --text: #151815;
+  --muted: #5b6259;
+  --faint: #868d83;
+  --accent: #c5f05a;
+  --accent-strong: #b2e03c;
+  --accent-ink: #172005;
+  --accent-text: #4a6a00;
+  --focus: #4a6a00;
+
+  /* nutrition */
+  --c-calories: #3a3d37;
+  --c-protein: #4f8a10;
+  --c-carbs: #257de0;
+  --c-fat: #d6457f;
+  --c-fiber: #f2a600;
+  /* activity rings */
+  --r-move: #d6457f;
+  --r-exercise: #4f8a10;
+  --r-stand: #1593b0;
+  /* domains */
+  --c-body: #6a4ce2;
+  --c-strength: #c95a1c;
+  /* status (reserved; always paired with icon + label) */
+  --good: #3f7a0c;
+  --warn: #9a6a00;
+  --bad: #c2412f;
+  --good-bg: #eaf4dc;
+  --warn-bg: #fbf0d4;
+  --bad-bg: #fbe3df;
+
+  --chart-grid: #e7e9e1;
+  --chart-axis: #868d83;
+  --shadow: 0 1px 2px rgb(20 24 18 / 0.06), 0 8px 24px -12px rgb(20 24 18 / 0.12);
+}
+
+.dark {
+  color-scheme: dark;
+  --bg: #101211;
+  --surface: #171a18;
+  --surface-2: #1d201e;
+  --surface-3: #242826;
+  --line: #2a2f2c;
+  --line-strong: #3a403c;
+  --text: #eceee6;
+  --muted: #a0a79c;
+  --faint: #737a71;
+  --accent: #c5f05a;
+  --accent-strong: #d4f77d;
+  --accent-ink: #141a05;
+  --accent-text: #c5f05a;
+  --focus: #c5f05a;
+
+  --c-calories: #e6e2d5;
+  --c-protein: #4a7d12;
+  --c-carbs: #338ced;
+  --c-fat: #e24d8b;
+  --c-fiber: #ca9310;
+  --r-move: #e24d8b;
+  --r-exercise: #6a9f22;
+  --r-stand: #26b0cc;
+  --c-body: #9887ef;
+  --c-strength: #e76624;
+  --good: #8cc63f;
+  --warn: #e0a526;
+  --bad: #ef7a69;
+  --good-bg: #1f2a14;
+  --warn-bg: #2c2412;
+  --bad-bg: #2e1a17;
+
+  --chart-grid: #232725;
+  --chart-axis: #737a71;
+  --shadow: 0 1px 0 rgb(255 255 255 / 0.02) inset, 0 12px 32px -18px rgb(0 0 0 / 0.7);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-text: var(--accent-text);
+  --color-good: var(--good);
+  --color-warn: var(--warn);
+  --color-bad: var(--bad);
+  --color-good-bg: var(--good-bg);
+  --color-warn-bg: var(--warn-bg);
+  --color-bad-bg: var(--bad-bg);
+  --color-protein: var(--c-protein);
+  --color-carbs: var(--c-carbs);
+  --color-fat: var(--c-fat);
+  --color-fiber: var(--c-fiber);
+  --color-calories: var(--c-calories);
+  --color-move: var(--r-move);
+  --color-exercise: var(--r-exercise);
+  --color-stand: var(--r-stand);
+  --color-body: var(--c-body);
+  --color-strength: var(--c-strength);
+
+  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --shadow-card: var(--shadow);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.5;
+    font-feature-settings: "tnum" 1, "ss01" 1;
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--accent) 45%, transparent);
+  }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+    font-feature-settings: "tnum" 1;
+    letter-spacing: -0.02em;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Recharts: keep chart chrome recessive and theme-aware. */
+.recharts-cartesian-grid line {
+  stroke: var(--chart-grid);
+}
+.recharts-cartesian-axis-tick text {
+  fill: var(--chart-axis);
+  font-size: 11px;
+}
+.recharts-surface:focus,
+.recharts-wrapper:focus,
+.recharts-sector:focus {
+  outline: none;
+}
+
+@media print {
+  :root,
+  .dark {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #ffffff;
+    --text: #111111;
+    --muted: #444444;
+    --line: #d4d4d4;
+  }
+  .no-print {
+    display: none !important;
+  }
+  body {
+    font-size: 12px;
+  }
+  .print-break {
+    break-before: page;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
