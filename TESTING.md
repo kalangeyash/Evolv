@@ -9,7 +9,7 @@
 
 ## Results at the last run (2026-11-25)
 
-- `pnpm test`: **76 passed** (4 files).
+- `pnpm test`: **87 passed** (4 files).
 - `pnpm test:e2e`: **10 passed, 2 skipped** (the offline test runs on desktop only; the overflow test on mobile only).
 - `pnpm typecheck` and `pnpm lint`: clean.
 

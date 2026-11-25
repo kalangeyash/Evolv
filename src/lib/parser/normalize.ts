@@ -320,6 +320,8 @@ function normalizeEntry(raw: RawEntry, i: number): ParsedEntry {
 
 function num(raw: string | undefined, kind: "int" | "dec" = "dec"): number | null {
   if (raw === undefined || isMissingMarker(raw)) return null;
+  const k = /(\d+(?:\.\d+)?)\s*k\b/i.exec(raw);
+  if (k) return Math.round(parseFloat(k[1]) * 1000);
   const n = parseNumber(raw);
   if (!n) return null;
   return kind === "int" ? Math.round(n.value) : round1(n.value);

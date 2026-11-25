@@ -277,6 +277,41 @@ describe("inline fields in names", () => {
   });
 });
 
+describe("Apple Watch steps and activity in many layouts", () => {
+  const base = "Date: 26 Nov 2026\n### Breakfast — 8 AM\nMeal: Poha\nCalories: 300 kcal\n\n";
+  const steps = (extra: string) => parseReport(base + extra, OPTS);
+  it.each([
+    ["colon", "## Apple Watch\nSteps: 8,432\n"],
+    ["dash", "## Apple Watch\nSteps — 8,432\n"],
+    ["no colon", "## Activity\nSteps 8,432\n"],
+    ["value first", "## Activity\n8,432 steps\n"],
+    ["sentence", "## Activity\nYou walked 8,432 steps (6.1 km) today.\n"],
+    ["table", "## Activity\n| Metric | Value | Goal |\n|---|---|---|\n| Steps | 8,432 | 10,000 |\n"],
+    ["step count with emoji", "## ⌚ Apple Watch Data\n- 👣 **Step Count:** 8,432 steps\n"],
+    ["no heading after last meal", "Steps: 8,432\n"],
+  ])("reads steps written as %s", (_, extra) => {
+    const r = steps(extra);
+    expect(r.activity?.steps).toBe(8432);
+    expect(r.entries[0].description).toBeNull();
+    expect(r.unrecognized).toEqual([]);
+  });
+
+  it("reads a one-line summary with goals", () => {
+    const r = steps("## Activity\nMove 520/600 kcal | Exercise 25/30 min | Stand 9/12 hr | 8,432 steps | 6.1 km\n");
+    expect(r.activity).toMatchObject({ moveCalories: 520, moveGoal: 600, exerciseMinutes: 25, exerciseGoal: 30, standHours: 9, standGoal: 12, steps: 8432, distanceKm: 6.1 });
+  });
+
+  it("reads an 'Apple Watch:' key with comma-separated metrics", () => {
+    const r = steps("**Apple Watch:** Move 520 kcal, Exercise 25 min, Steps 8,432\n");
+    expect(r.activity).toMatchObject({ moveCalories: 520, exerciseMinutes: 25, steps: 8432 });
+    expect(r.entries[0].calories).toBe(300);
+  });
+
+  it("expands 8.4k steps", () => {
+    expect(steps("## Activity\nSteps: ~8.4k\n").activity?.steps).toBe(8400);
+  });
+});
+
 describe("text primitives", () => {
   it("parses numbers", () => {
     expect(parseNumber("1,757 kcal")).toMatchObject({ value: 1757, approximate: false });

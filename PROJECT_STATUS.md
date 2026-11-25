@@ -20,7 +20,7 @@ _Last updated: 2026-11-25 (v1.0.0)_
 
 ## Test status (last run 2026-11-25)
 
-- Unit/integration: **76 passed**
+- Unit/integration: **87 passed**
 - End-to-end on the production export (desktop Chrome + Pixel 7): **10 passed, 2 skipped by design**
 - Typecheck and lint: **clean**
 
@@ -75,6 +75,7 @@ None open at release. Fixed during the audit:
 - Mobile focus-zoom pushed dialogs off-screen (input font now 16px on small screens).
 - A card header's range selector widened the Body page on mobile.
 - An inline `— Score: 7/10` stayed inside food names instead of filling the score.
+- Steps written as `Steps — 8,432`, `8,432 steps`, `8.4k`, one-line summaries, or after the last meal without a heading were missed or absorbed into that meal.
 
 ## Deployment status
 

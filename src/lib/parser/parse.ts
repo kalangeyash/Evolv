@@ -176,6 +176,46 @@ export function splitValueAndGoal(v: string): { value: string; goal: string | nu
   return { value: v.trim(), goal: null };
 }
 
+/* ---------------------------------------------------------- activity scan */
+
+const N = String.raw`~?\s*\d[\d,]*(?:\.\d+)?(?:\s*k(?![a-z]))?`;
+const SEP = String.raw`\s*(?:[:=]|[-–—]|is|of|was)?\s*`;
+const GOAL = String.raw`(?:\s*(?:\/|of|out of)\s*(\d[\d,]*(?:\.\d+)?))?`;
+
+/**
+ * Find Apple Watch metrics written as free text: "Steps — 8,432",
+ * "8,432 steps", "Move 520/600 kcal", "Stand 9 of 12 hrs", "6.1 km".
+ * Values are returned as strings for normalisation.
+ */
+export function scanActivity(text: string): {
+  value: Partial<Record<ActivityField, string>>;
+  goal: Partial<Record<ActivityField, string>>;
+} {
+  const t = text.replace(/\*\*|__/g, "");
+  const value: Partial<Record<ActivityField, string>> = {};
+  const goal: Partial<Record<ActivityField, string>> = {};
+  let m = new RegExp(String.raw`\b(?:steps?|step count|total steps)${SEP}(${N})(?!\s*(?:min|kcal|km|%))`, "i").exec(t) ?? null;
+  if (m) value.steps = m[1];
+  else if ((m = new RegExp(String.raw`(${N})\s*steps\b`, "i").exec(t))) value.steps = m[1];
+  if ((m = new RegExp(String.raw`\b(?:move(?: calories)?|active (?:calories|energy))${SEP}(${N})${GOAL}\s*(?:kcal|cal|calories)?`, "i").exec(t))) {
+    value.move = m[1];
+    if (m[2]) goal.move = m[2];
+  }
+  if ((m = new RegExp(String.raw`\bexercise(?: minutes| time)?${SEP}(\d+)${GOAL}\s*(?:min|mins|minutes)\b`, "i").exec(t))) {
+    value.exercise = m[1];
+    if (m[2]) goal.exercise = m[2];
+  }
+  if ((m = new RegExp(String.raw`\bstand(?: hours)?${SEP}(\d+)${GOAL}\s*(?:hr|hrs|hours|h)?\b`, "i").exec(t))) {
+    value.stand = m[1];
+    if (m[2]) goal.stand = m[2];
+  }
+  const hasKeyword = Object.keys(value).length > 0 || /\bdistance\b/i.test(t);
+  if (hasKeyword && (m = /(\d+(?:\.\d+)?)\s*(km|kms|mi|miles)\b/i.exec(t))) value.distance = `${m[1]} ${m[2]}`;
+  return { value, goal };
+}
+
+const ACTIVITY_SUMMARY_KEY = /^(apple watch|watch|activity|activity summary|daily activity|watch data|apple watch data|rings|fitness)$/;
+
 /* ------------------------------------------------------------ entry header */
 
 const ENTRY_LABEL_RE = /^(?:entry|meal|food(?:\s+entry)?|item|log)\s*(?:#|no\.?|number)?\s*(\d{1,2})\b[\s:.)\]–—|-]*/i;
@@ -360,6 +400,20 @@ export function parseReportStructure(input: string): RawReport {
         const { found } = scanNutrients(value);
         for (const [nk, v] of Object.entries(found)) setTotal(nk as NutrientKey, v!, key);
         return Object.keys(found).length > 0;
+      }
+    }
+
+    // Activity data never belongs to a food entry: close the entry and record it.
+    if (entry && !lookupEntryField(key)) {
+      const afKey = lookupActivityField(key.replace(/\b(goal|target)\b/gi, "").trim() || key);
+      if (afKey || ACTIVITY_SUMMARY_KEY.test(k)) closeEntry();
+    }
+    if (ACTIVITY_SUMMARY_KEY.test(k) && section !== "notes") {
+      const sa = scanActivity(value);
+      if (Object.keys(sa.value).length) {
+        for (const [f2, v] of Object.entries(sa.value)) report.activity.value[f2 as ActivityField] ??= v;
+        for (const [f2, v] of Object.entries(sa.goal)) report.activity.goal[f2 as ActivityField] ??= v;
+        return true;
       }
     }
 
@@ -668,7 +722,20 @@ export function parseReportStructure(input: string): RawReport {
       if (handleKV(kv.key, kv.value, cl.text)) continue;
     }
 
-    // 6. Inline nutrient runs inside an entry ("340 kcal | P 19 g | C 33 g").
+    // 6a. Free-text activity ("8,432 steps", "Move 520/600 kcal | Stand 9/12 hr").
+    {
+      const inActivity = section === "activity" || section === "workouts";
+      const sa = scanActivity(cl.text);
+      const strong = sa.value.steps !== undefined || sa.value.move !== undefined || sa.value.stand !== undefined;
+      if ((inActivity && Object.keys(sa.value).length) || (strong && section !== "notes" && section !== "energy")) {
+        closeEntry();
+        for (const [f2, v] of Object.entries(sa.value)) report.activity.value[f2 as ActivityField] ??= v;
+        for (const [f2, v] of Object.entries(sa.goal)) report.activity.goal[f2 as ActivityField] ??= v;
+        continue;
+      }
+    }
+
+    // 6b. Inline nutrient runs inside an entry ("340 kcal | P 19 g | C 33 g").
     if (entry) {
       const { found, rest } = scanNutrients(cl.text);
       if (Object.keys(found).length) {
